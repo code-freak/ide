@@ -20,7 +20,7 @@ before_install:
 script:
   - docker build
     --build-arg GITHUB_TOKEN
-    -t cfreak/ide:latest --cache-from cfreak/ide:latest $TRAVIS_BUILD_DIR/ide
+    -t cfreak/ide:latest --cache-from cfreak/ide:latest $TRAVIS_BUILD_DIR
 
 # build & push image to Docker Cloud
 # The Autobuild feature of Docker Cloud has been too slow in the past so we use Travis
