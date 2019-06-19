@@ -1,0 +1,45 @@
+language: java
+dist: xenial
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+      - python3
+      - python3-pip
+
+# The commands are in order how they are executed in a job lifecycle
+# https://docs.travis-ci.com/user/job-lifecycle#the-job-lifecycle
+
+before_install:
+  # https://github.com/praekeltfoundation/docker-ci-deploy
+  - pip3 install --user --upgrade pip
+  - pip3 install --user docker-ci-deploy
+
+script:
+  - docker build
+    --build-arg GITHUB_TOKEN
+    -t cfreak/ide:latest --cache-from cfreak/ide:latest $TRAVIS_BUILD_DIR/ide
+
+# build & push image to Docker Cloud
+# The Autobuild feature of Docker Cloud has been too slow in the past so we use Travis
+before_deploy:
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+deploy:
+  # deploy master branch as latest
+  - provider: script
+    on:
+      branch: master
+    script: docker-ci-deploy --tag canary -- cfreak/ide
+  # deploy tags
+  - provider: script
+    on:
+      tags: true
+    # This will also tag and deploy minor and major version (1.2.3 as 1.2 and 1)
+    script: docker-ci-deploy --version-latest --version $TRAVIS_TAG --version-semver cfreak/ide
+  # deploy demo branch
+  - provider: script
+    on:
+      branch: demo
+    script: docker-ci-deploy --tag demo -- cfreak/ide
