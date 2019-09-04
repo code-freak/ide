@@ -28,7 +28,7 @@ ENV LANG en_US.utf8
 ADD scripts /opt/code-freak
 
 # Install Coder
-ENV CODE_VERSION="1.939-vsc1.33.1"
+ENV CODE_VERSION="1.1156-vsc1.33.1"
 RUN mkdir -p /opt/code-server-${CODE_VERSION} \
     && curl -sL https://github.com/cdr/code-server/releases/download/${CODE_VERSION}/code-server${CODE_VERSION}-linux-x64.tar.gz \
        | tar --strip-components=1 -zx -C /opt/code-server-${CODE_VERSION} \
@@ -52,18 +52,18 @@ RUN mkdir -p $VSCODE_USER $VSCODE_EXTENSIONS
 COPY  --chown=coder:coder settings/ $VSCODE_USER
 
 # Java Extensions
-ARG VSCODE_JAVA_VERSION=0.45.0
-ARG VSCODE_JAVA_DEBUG_VERSION=0.18.0
-ARG VSCODE_JAVA_TEST_VERSION=0.16.0
+ARG VSCODE_JAVA_VERSION=0.47.0
+ARG VSCODE_JAVA_DEBUG_VERSION=0.21.0
+ARG VSCODE_JAVA_TEST_VERSION=0.19.0
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java \
     && curl -JLs --retry 5 https://github.com/redhat-developer/vscode-java/releases/download/v${VSCODE_JAVA_VERSION}/redhat.java-${VSCODE_JAVA_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java extension
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java-debugger \
-    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-debug/releases/download/${VSCODE_JAVA_DEBUG_VERSION}/vscode-java-debug-${VSCODE_JAVA_DEBUG_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-debugger extension
+    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-debug/releases/download/${VSCODE_JAVA_DEBUG_VERSION}/vscjava.vscode-java-debug-${VSCODE_JAVA_DEBUG_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-debugger extension
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java-test \
-    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-test/releases/download/${VSCODE_JAVA_TEST_VERSION}/vscjava.vscode-java-test-${VSCODE_JAVA_TEST_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-test extension
+    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-test/releases/download/${VSCODE_JAVA_TEST_VERSION}/vscode-java-test-${VSCODE_JAVA_TEST_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-test extension
 
 # Custom Sonar lint with Java support
 COPY --chown=coder:coder sonarlint-vscode-1.7.0-SNAPSHOT.vsix .
