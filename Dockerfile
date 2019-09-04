@@ -55,6 +55,7 @@ COPY  --chown=coder:coder settings/ $VSCODE_USER
 ARG VSCODE_JAVA_VERSION=0.47.0
 ARG VSCODE_JAVA_DEBUG_VERSION=0.21.0
 ARG VSCODE_JAVA_TEST_VERSION=0.19.0
+ARG VSCODE_CPPTOOLS_VERSION=0.25.1
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java \
     && curl -JLs --retry 5 https://github.com/redhat-developer/vscode-java/releases/download/v${VSCODE_JAVA_VERSION}/redhat.java-${VSCODE_JAVA_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java extension
@@ -64,6 +65,9 @@ RUN mkdir -p ${VSCODE_EXTENSIONS}/java-debugger \
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java-test \
     && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-test/releases/download/${VSCODE_JAVA_TEST_VERSION}/vscode-java-test-${VSCODE_JAVA_TEST_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-test extension
+
+RUN mkdir -p ${VSCODE_EXTENSIONS}/cpptools \
+    && curl -JLs --retry 5 https://github.com/microsoft/vscode-cpptools/releases/download/${VSCODE_CPPTOOLS_VERSION}/cpptools-linux.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/cpptools extension
 
 # Custom Sonar lint with Java support
 COPY --chown=coder:coder sonarlint-vscode-1.7.0-SNAPSHOT.vsix .
