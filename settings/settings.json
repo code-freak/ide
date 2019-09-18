@@ -11,5 +11,5 @@
     "java.jdt.ls.vmargs": "-Xmx128m",
     "sonarlint.ls.vmargs": "-Xmx128m",
     "files.autoSave": "afterDelay",
-    "workbench.startupEditor": "welcomePageInEmptyWorkbench"
+    "workbench.startupEditor": "readme"
 }
