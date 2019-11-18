@@ -29,9 +29,9 @@ ENV LANG en_US.utf8
 ADD scripts /opt/code-freak
 
 # Install Coder
-ENV CODE_VERSION="1.1156-vsc1.33.1"
+ENV CODE_VERSION="2.1692-vsc1.39.2"
 RUN mkdir -p /opt/code-server-${CODE_VERSION} \
-    && curl -sL https://github.com/cdr/code-server/releases/download/${CODE_VERSION}/code-server${CODE_VERSION}-linux-x64.tar.gz \
+    && curl -sL https://github.com/cdr/code-server/releases/download/${CODE_VERSION}/code-server${CODE_VERSION}-linux-x86_64.tar.gz \
        | tar --strip-components=1 -zx -C /opt/code-server-${CODE_VERSION} \
     && ln -s /opt/code-server-${CODE_VERSION}/code-server /usr/local/bin/code-server
 
@@ -54,18 +54,14 @@ COPY  --chown=coder:coder settings/ $VSCODE_USER
 
 # Java Extensions
 ARG VSCODE_JAVA_VERSION=0.47.0
-ARG VSCODE_JAVA_DEBUG_VERSION=0.21.0
-ARG VSCODE_JAVA_TEST_VERSION=0.19.0
-ARG VSCODE_CPPTOOLS_VERSION=0.25.1
+ARG VSCODE_JAVA_DEBUG_VERSION=0.23.0
+ARG VSCODE_CPPTOOLS_VERSION=0.26.1
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java \
     && curl -JLs --retry 5 https://github.com/redhat-developer/vscode-java/releases/download/v${VSCODE_JAVA_VERSION}/redhat.java-${VSCODE_JAVA_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java extension
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/java-debugger \
-    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-debug/releases/download/${VSCODE_JAVA_DEBUG_VERSION}/vscjava.vscode-java-debug-${VSCODE_JAVA_DEBUG_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-debugger extension
-
-RUN mkdir -p ${VSCODE_EXTENSIONS}/java-test \
-    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-test/releases/download/${VSCODE_JAVA_TEST_VERSION}/vscode-java-test-${VSCODE_JAVA_TEST_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-test extension
+    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-debug/releases/download/${VSCODE_JAVA_DEBUG_VERSION}/vscode-java-debug-${VSCODE_JAVA_DEBUG_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-debugger extension
 
 RUN mkdir -p ${VSCODE_EXTENSIONS}/cpptools \
     && curl -JLs --retry 5 https://github.com/microsoft/vscode-cpptools/releases/download/${VSCODE_CPPTOOLS_VERSION}/cpptools-linux.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/cpptools extension
@@ -78,4 +74,4 @@ RUN mkdir -p ${VSCODE_EXTENSIONS}/sonarlint \
 
 RUN mkdir -p /home/coder/project
 WORKDIR /home/coder/project
-ENTRYPOINT ["dumb-init", "code-server", "--disable-telemetry", "--no-auth", "--allow-http", "-p", "3000"]
+ENTRYPOINT ["dumb-init", "code-server", "--disable-telemetry", "--auth", "none", "--port", "3000", "/home/coder/project"]
