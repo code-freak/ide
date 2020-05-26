@@ -9,5 +9,6 @@
         "**/.sonarlint": true
     },
     "files.autoSave": "afterDelay",
-    "workbench.startupEditor": "readme"
+    "workbench.startupEditor": "readme",
+    "terminal.integrated.shell.linux": "/bin/bash"
 }
