@@ -3,11 +3,11 @@ Code FREAK IDE Docker Image
 [![Build Status](https://travis-ci.com/codefreak/ide.svg?branch=master)](https://travis-ci.com/codefreak/ide)
 [![Docker Image Version](https://img.shields.io/docker/v/cfreak/ide?sort=semver)](https://hub.docker.com/r/cfreak/ide)
 
-This is the default IDE image used by [`code-freak`](https://github.com/code-freak/code-freak). It spins up
+This is the default IDE image used by [Code FREAK](https://github.com/codefreak/codefreak). It spins up
 an editor on the server that is accessible via browser.  
 Currently we use [`code-server`](https://github.com/cdr/code-server) as IDE.
 
-**Please open Issues on the [main repository](https://github.com/code-freak/code-freak)!**
+**Please open issues on the [main repository](https://github.com/codefreak/codefreak)!**
 
 # Build
 
@@ -21,7 +21,7 @@ To run the IDE in the current directory:
 ```
 docker run -it --rm -v $PWD:/home/coder/project -p 3000:3000 cfreak/ide:test
 ```
-The IDE will be listing on `http://localhost:3000`
+The IDE will be listening on `http://localhost:3000`
 
 # Pre-Installed Languages (+ VSCode Plugins)
 
