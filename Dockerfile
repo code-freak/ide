@@ -1,81 +1,71 @@
-FROM ubuntu:19.04
+FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    lsof \
-    gpg \
-    curl \
-    dumb-init \
-    git \
-    sudo \
-    gdb \
-    build-essential \
-    # Node JS
-    nodejs \
-    npm \
-    # JDK
-    default-jdk-headless \
-    gradle \
-    # Code-Server
-    bsdtar \
-    openssl \
-    locales \
-    net-tools \
-    cmake
+# Prevent interactive questions by tzdata and other packages
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+# Install common packages & basic setup
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y lsof openssl apt-transport-https ca-certificates curl dumb-init locales build-essential vim less nano git jq unzip \
+    # Create non-root user
+    && groupadd -r coder && useradd -m coder -g coder -s /bin/bash \
+    && touch /home/coder/.bash_aliases && chown coder:coder /home/coder/.bash_aliases \
+    # set default locale
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
 ENV LANG en_US.utf8
 
-# Add utility scripts
+# Add utility scripts used by Code FREAK
 ADD scripts /opt/code-freak
 
-# Install Coder
-ENV CODE_VERSION="3.0.2"
-RUN mkdir -p /opt/code-server-${CODE_VERSION} \
-    && curl -sL https://github.com/cdr/code-server/releases/download/${CODE_VERSION}/code-server-${CODE_VERSION}-linux-x86_64.tar.gz \
-       | tar --strip-components=1 -zx -C /opt/code-server-${CODE_VERSION} \
-    && ln -s /opt/code-server-${CODE_VERSION}/code-server /usr/local/bin/code-server
+# Install code-server from GitHub
+ARG CODE_VERSION="3.3.1"
+RUN curl -LsSo /tmp/code-server.deb https://github.com/cdr/code-server/releases/download/v${CODE_VERSION}/code-server_${CODE_VERSION}_amd64.deb \
+    && dpkg -i /tmp/code-server.deb \
+    && rm /tmp/code-server.deb \
+    && su coder -- code-server --install-extension formulahendry.code-runner
 
+# Apply default configuration
+COPY --chown=coder:coder settings/ /home/coder/.local/share/code-server/User/
 
-# Create user and allow sudoing
-RUN groupadd -r coder \
-    && useradd -m coder -g coder -s /bin/bash \
-    && echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+# Python 3.8
+RUN apt-get install --no-install-recommends -y python3 python3-pip \
+    # linking "python" to "python3" globally may interfere with apt
+    # create an alias for the coder user instead
+    && echo "alias python='$(which python3)'" >> /home/coder/.bash_aliases \
+    && su coder -- code-server --install-extension ms-python.python
+
+# C / C++ support
+RUN apt-get install --no-install-recommends -y gdb cmake \
+    && su coder -- code-server --install-extension ms-vscode.cpptools
+
+# NodeJS 12.04 via nodesource PPA + npm & yarn
+RUN curl -sSL https://deb.nodesource.com/setup_12.x | bash - \
+    && curl -sSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get install --no-install-recommends -y nodejs yarn \
+    && su coder -- code-server --install-extension dbaeumer.vscode-eslint
+
+# OpenJDK 11 LTS + Gradle + Maven
+RUN apt-get install --no-install-recommends -y openjdk-11-jdk-headless gradle maven \
+    && su coder -- code-server --install-extension redhat.java \
+    && su coder -- code-server --install-extension vscjava.vscode-java-debug
+
+# Mono 6.8.0 + MS .NET Core SDK 3.1
+RUN curl -LsSo /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb \
+    && dpkg -i /tmp/packages-microsoft-prod.deb \
+    && rm /tmp/packages-microsoft-prod.deb \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y  mono-complete dotnet-sdk-3.1 \
+    && su coder -- code-server --install-extension ms-dotnettools.csharp \
+    # Pre-install runtime dependecies of C# extension
+    && su coder -- /opt/code-freak/install-ext-runtime-deps.sh /home/coder/.local/share/code-server/extensions/ms-dotnettools.csharp-*
+
+# Run everything as non-root user
 USER coder
-WORKDIR /tmp
-
-# Install coder extensions
-ENV VSCODE_USER "/home/coder/.local/share/code-server/User"
-ENV VSCODE_EXTENSIONS "/home/coder/.local/share/code-server/extensions"
-
-RUN mkdir -p $VSCODE_USER $VSCODE_EXTENSIONS
-
-# Config
-COPY  --chown=coder:coder settings/ $VSCODE_USER
-
-# Various Extensions
-ARG VSCODE_JAVA_VERSION=0.55.1
-ARG VSCODE_JAVA_DEBUG_VERSION=0.25.1
-ARG VSCODE_CPPTOOLS_VERSION=0.27.0
-ARG VSCODE_SONARLINT_VERSION=1.15.0
-
-RUN mkdir -p ${VSCODE_EXTENSIONS}/java \
-    && curl -JLs --retry 5 https://github.com/redhat-developer/vscode-java/releases/download/v${VSCODE_JAVA_VERSION}/redhat.java-${VSCODE_JAVA_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java extension
-
-RUN mkdir -p ${VSCODE_EXTENSIONS}/java-debugger \
-    && curl -JLs --retry 5 https://github.com/microsoft/vscode-java-debug/releases/download/${VSCODE_JAVA_DEBUG_VERSION}/vscode-java-debug-${VSCODE_JAVA_DEBUG_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/java-debugger extension
-
-RUN mkdir -p ${VSCODE_EXTENSIONS}/cpptools \
-    && curl -JLs --retry 5 https://github.com/microsoft/vscode-cpptools/releases/download/${VSCODE_CPPTOOLS_VERSION}/cpptools-linux.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/cpptools extension
- 
-RUN mkdir -p ${VSCODE_EXTENSIONS}/sonarlint \
-    && curl -JLs --retry 5 https://github.com/SonarSource/sonarlint-vscode/releases/download/${VSCODE_SONARLINT_VERSION}/sonarlint-vscode-${VSCODE_SONARLINT_VERSION}.vsix | bsdtar --strip-components=1 -xf - -C ${VSCODE_EXTENSIONS}/sonarlint extension
- 
 RUN mkdir -p /home/coder/project
 WORKDIR /home/coder/project
 CMD dumb-init code-server \
     --disable-telemetry \
-    --disable-ssh \
-    --disable-updates \
     --auth none \
     --port 3000 \
     --host 0.0.0.0 \
