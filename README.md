@@ -19,7 +19,7 @@ docker build -t cfreak/ide .
 # Run / Install
 To run the IDE in the current directory:
 ```
-docker run -it --rm -v $PWD:/home/coder/project -p 3000:3000 cfreak/ide:test
+docker run -it --rm -v $PWD:/home/coder/project -p 3000:3000 cfreak/ide
 ```
 The IDE will be listening on `http://localhost:3000`
 
