@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:20.10
 
 # Prevent interactive questions by tzdata and other packages
 ENV DEBIAN_FRONTEND noninteractive
