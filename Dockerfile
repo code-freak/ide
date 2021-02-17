@@ -22,33 +22,31 @@ ARG CODE_VERSION="3.3.1"
 RUN curl -LsSo /tmp/code-server.deb https://github.com/cdr/code-server/releases/download/v${CODE_VERSION}/code-server_${CODE_VERSION}_amd64.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm /tmp/code-server.deb \
-    && su coder -- code-server --install-extension formulahendry.code-runner
+    && su coder -c "code-server --install-extension formulahendry.code-runner"
 
 # Apply default configuration
 COPY --chown=coder:coder settings/ /home/coder/.local/share/code-server/User/
 
 # Python 3.8
-RUN apt-get install --no-install-recommends -y python3 python3-pip \
-    # linking "python" to "python3" globally may interfere with apt
-    # create an alias for the coder user instead
-    && echo "alias python='$(which python3)'" >> /home/coder/.bash_aliases \
-    && su coder -- code-server --install-extension ms-python.python
+RUN apt-get install --no-install-recommends -y python3 python3-pip python-is-python3 \
+    && su coder -c "pip3 install -U pylint --user" \
+    && su coder -c "code-server --install-extension ms-python.python"
 
 # C / C++ support
 RUN apt-get install --no-install-recommends -y gdb cmake \
-    && su coder -- code-server --install-extension ms-vscode.cpptools
+    && su coder -c "code-server --install-extension ms-vscode.cpptools"
 
 # NodeJS 12.04 via nodesource PPA + npm & yarn
 RUN curl -sSL https://deb.nodesource.com/setup_12.x | bash - \
     && curl -sSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
     && apt-get install --no-install-recommends -y nodejs yarn \
-    && su coder -- code-server --install-extension dbaeumer.vscode-eslint
+    && su coder -c "code-server --install-extension dbaeumer.vscode-eslint"
 
 # OpenJDK 11 LTS + Gradle + Maven
 RUN apt-get install --no-install-recommends -y openjdk-11-jdk-headless gradle maven \
-    && su coder -- code-server --install-extension redhat.java \
-    && su coder -- code-server --install-extension vscjava.vscode-java-debug
+    && su coder -c "code-server --install-extension redhat.java" \
+    && su coder -c "code-server --install-extension vscjava.vscode-java-debug"
 
 # Mono 6.8.0 + MS .NET Core SDK 3.1
 RUN curl -LsSo /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb \
@@ -56,9 +54,9 @@ RUN curl -LsSo /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/c
     && rm /tmp/packages-microsoft-prod.deb \
     && apt-get update \
     && apt-get install --no-install-recommends -y  mono-complete dotnet-sdk-3.1 \
-    && su coder -- code-server --install-extension ms-dotnettools.csharp \
+    && su coder -c "code-server --install-extension ms-dotnettools.csharp" \
     # Pre-install runtime dependecies of C# extension
-    && su coder -- /opt/code-freak/install-ext-runtime-deps.sh /home/coder/.local/share/code-server/extensions/ms-dotnettools.csharp-*
+    && su coder -c "/opt/code-freak/install-ext-runtime-deps.sh /home/coder/.local/share/code-server/extensions/ms-dotnettools.csharp-*"
 
 # Run everything as non-root user
 USER coder
