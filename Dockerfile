@@ -18,7 +18,7 @@ ENV LANG en_US.utf8
 ADD scripts /opt/code-freak
 
 # Install code-server from GitHub
-ARG CODE_VERSION="3.3.1"
+ARG CODE_VERSION="3.9.0"
 RUN curl -LsSo /tmp/code-server.deb https://github.com/cdr/code-server/releases/download/v${CODE_VERSION}/code-server_${CODE_VERSION}_amd64.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm /tmp/code-server.deb \
