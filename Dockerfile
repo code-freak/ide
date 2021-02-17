@@ -34,9 +34,14 @@ RUN apt-get install --no-install-recommends -y python3 python3-pip \
     && echo "alias python='$(which python3)'" >> /home/coder/.bash_aliases \
     && su coder -- code-server --install-extension ms-python.python
 
-# C / C++ support
+# C / C++ support with CMake
+# code-server downloads the extension for the wrong CPU architecture so we manually download the vsix
+# see https://github.com/cdr/code-server/issues/2120
 RUN apt-get install --no-install-recommends -y gdb cmake \
-    && su coder -- code-server --install-extension ms-vscode.cpptools
+    && curl -LsSo /tmp/cpptools-linux.vsix https://github.com/microsoft/vscode-cpptools/releases/download/1.2.1/cpptools-linux.vsix  \
+    && su coder -c "code-server --install-extension /tmp/cpptools-linux.vsix" \
+    && su coder -c "code-server --install-extension twxs.cmake" \
+    && rm /tmp/cpptools-linux.vsix
 
 # NodeJS 12.04 via nodesource PPA + npm & yarn
 RUN curl -sSL https://deb.nodesource.com/setup_12.x | bash - \
