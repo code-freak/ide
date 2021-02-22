@@ -18,7 +18,7 @@ ENV LANG en_US.utf8
 ADD scripts /opt/code-freak
 
 # Install code-server from GitHub
-ARG CODE_VERSION="3.3.1"
+ARG CODE_VERSION="3.9.0"
 RUN curl -LsSo /tmp/code-server.deb https://github.com/cdr/code-server/releases/download/v${CODE_VERSION}/code-server_${CODE_VERSION}_amd64.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm /tmp/code-server.deb \
@@ -32,9 +32,14 @@ RUN apt-get install --no-install-recommends -y python3 python3-pip python-is-pyt
     && su coder -c "pip3 install -U pylint --user" \
     && su coder -c "code-server --install-extension ms-python.python"
 
-# C / C++ support
+# C / C++ support with CMake
+# code-server downloads the extension for the wrong CPU architecture so we manually download the vsix
+# see https://github.com/cdr/code-server/issues/2120
 RUN apt-get install --no-install-recommends -y gdb cmake \
-    && su coder -c "code-server --install-extension ms-vscode.cpptools"
+    && curl -LsSo /tmp/cpptools-linux.vsix https://github.com/microsoft/vscode-cpptools/releases/download/1.2.1/cpptools-linux.vsix  \
+    && su coder -c "code-server --install-extension /tmp/cpptools-linux.vsix" \
+    && su coder -c "code-server --install-extension twxs.cmake" \
+    && rm /tmp/cpptools-linux.vsix
 
 # NodeJS 12.04 via nodesource PPA + npm & yarn
 RUN curl -sSL https://deb.nodesource.com/setup_12.x | bash - \
