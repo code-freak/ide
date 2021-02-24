@@ -38,6 +38,7 @@ RUN apt-get install --no-install-recommends -y python3 python3-pip python-is-pyt
 RUN apt-get install --no-install-recommends -y gdb cmake \
     && curl -LsSo /tmp/cpptools-linux.vsix https://github.com/microsoft/vscode-cpptools/releases/download/1.2.1/cpptools-linux.vsix  \
     && su coder -c "code-server --install-extension /tmp/cpptools-linux.vsix" \
+    && su coder -c "code-server --install-extension ms-vscode.cmake-tools" \
     && su coder -c "code-server --install-extension twxs.cmake" \
     && rm /tmp/cpptools-linux.vsix
 
