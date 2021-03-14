@@ -62,7 +62,12 @@ RUN curl -LsSo /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/c
     && apt-get install --no-install-recommends -y  mono-complete dotnet-sdk-3.1 \
     && su coder -c "code-server --install-extension ms-dotnettools.csharp" \
     # Pre-install runtime dependecies of C# extension
-    && su coder -c "/opt/code-freak/install-ext-runtime-deps.sh /home/coder/.local/share/code-server/extensions/ms-dotnettools.csharp-*"
+    && su coder -c "/opt/code-freak/install-ext-runtime-deps.sh /home/coder/.local/share/code-server/extensions/ms-dotnettools.csharp-*" \
+    # Install the Samsung .NET Debugger
+    && curl -LsSo /tmp/netcoredbg.tar.gz https://github.com/Samsung/netcoredbg/releases/download/1.2.0-738/netcoredbg-linux-focal-amd64.tar.gz \
+    && mkdir -p /home/coder/bin \
+    && tar -xzf /tmp/netcoredbg.tar.gz -C /home/coder/bin \
+    && rm /tmp/netcoredbg.tar.gz
 
 # Run everything as non-root user
 USER coder
