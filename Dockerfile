@@ -29,8 +29,10 @@ COPY --chown=coder:coder settings/ /home/coder/.local/share/code-server/User/
 
 # Python 3.8
 RUN apt-get install --no-install-recommends -y python3 python3-pip python-is-python3 \
+    && curl -LsSo /tmp/python.vsix https://github.com/microsoft/vscode-python/releases/download/2020.10.332292344/ms-python-release.vsix \
     && su coder -c "pip3 install -U pylint --user" \
-    && su coder -c "code-server --install-extension ms-python.python"
+    && su coder -c "code-server --install-extension /tmp/python.vsix" \
+    && rm /tmp/python.vsix
 
 # C / C++ support with CMake
 # code-server downloads the extension for the wrong CPU architecture so we manually download the vsix

@@ -10,5 +10,6 @@
     },
     "files.autoSave": "afterDelay",
     "workbench.startupEditor": "readme",
-    "terminal.integrated.shell.linux": "/bin/bash"
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "extensions.autoUpdate": false
 }
