@@ -21,8 +21,7 @@ ADD scripts /opt/code-freak
 ARG CODE_VERSION="3.9.0"
 RUN curl -LsSo /tmp/code-server.deb https://github.com/cdr/code-server/releases/download/v${CODE_VERSION}/code-server_${CODE_VERSION}_amd64.deb \
     && dpkg -i /tmp/code-server.deb \
-    && rm /tmp/code-server.deb \
-    && su coder -c "code-server --install-extension formulahendry.code-runner"
+    && rm /tmp/code-server.deb
 
 # Apply default configuration
 COPY --chown=coder:coder settings/ /home/coder/.local/share/code-server/User/
