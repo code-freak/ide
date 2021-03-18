@@ -51,10 +51,29 @@ RUN curl -sSL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install --no-install-recommends -y nodejs yarn \
     && su coder -c "code-server --install-extension dbaeumer.vscode-eslint"
 
-# OpenJDK 11 LTS + Gradle + Maven
-RUN apt-get install --no-install-recommends -y openjdk-11-jdk-headless gradle maven \
+# OpenJDK 11 LTS + Maven
+RUN apt-get install --no-install-recommends -y openjdk-11-jdk-headless maven \
     && su coder -c "code-server --install-extension redhat.java" \
     && su coder -c "code-server --install-extension vscjava.vscode-java-debug"
+
+# Install Gradle manually (stolen from official Gradle Docker Image) as the Ubuntu gradle version is from 2012
+# https://packages.ubuntu.com/focal/amd64/java/gradle
+# https://github.com/docker-library/official-images/blob/master/library/gradle
+ENV GRADLE_HOME /opt/gradle
+ENV GRADLE_VERSION 6.8.3
+ARG GRADLE_DOWNLOAD_SHA256=7faa7198769f872826c8ef4f1450f839ec27f0b4d5d1e51bade63667cbccd205
+RUN set -o errexit -o nounset \
+    && echo "Downloading Gradle" \
+    && curl -LsSo gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+    && echo "Checking download hash" \
+    && echo "${GRADLE_DOWNLOAD_SHA256} *gradle.zip" | sha256sum --check - \
+    && echo "Installing Gradle" \
+    && unzip gradle.zip \
+    && rm gradle.zip \
+    && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
+    && ln --symbolic "${GRADLE_HOME}/bin/gradle" /usr/bin/gradle \
+    && echo "Testing Gradle installation" \
+    && gradle --version
 
 # Mono 6.8.0 + MS .NET Core SDK 3.1
 RUN curl -LsSo /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb \
