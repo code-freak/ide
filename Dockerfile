@@ -21,8 +21,7 @@ ADD scripts /opt/code-freak
 ARG CODE_VERSION="3.9.0"
 RUN curl -LsSo /tmp/code-server.deb https://github.com/cdr/code-server/releases/download/v${CODE_VERSION}/code-server_${CODE_VERSION}_amd64.deb \
     && dpkg -i /tmp/code-server.deb \
-    && rm /tmp/code-server.deb \
-    && su coder -c "code-server --install-extension formulahendry.code-runner"
+    && rm /tmp/code-server.deb
 
 # Apply default configuration
 COPY --chown=coder:coder settings/ /home/coder/.local/share/code-server/User/
@@ -30,6 +29,7 @@ COPY --chown=coder:coder settings/ /home/coder/.local/share/code-server/User/
 # Python 3.8
 RUN apt-get install --no-install-recommends -y python3 python3-pip python-is-python3 \
     && curl -LsSo /tmp/python.vsix https://github.com/microsoft/vscode-python/releases/download/2020.10.332292344/ms-python-release.vsix \
+    && chown -R coder:coder /home/coder \
     && su coder -c "pip3 install -U pylint --user" \
     && su coder -c "code-server --install-extension /tmp/python.vsix" \
     && rm /tmp/python.vsix
